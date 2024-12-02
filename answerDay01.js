@@ -4,7 +4,7 @@ const data = fs.readFileSync('inputDay01.txt', 'utf8');
 const lines = data.trim().split('\n');
 const [leftList, rightList] = [[], []];
 lines.forEach(line => {
-  const [left, right] = line.split(/\s+/);
+  const [left, right] = line.split(/\s+/); 
   leftList.push(left);
   rightList.push(right);
 });
@@ -13,7 +13,7 @@ rightList.sort((a, b) => a - b);
 
 let answer01 = 0;
 for (let i = 0; i < lines.length; i++) {
-  answer01 += Math.abs(leftList[i] - rightList[i]); 
+  answer01 += Math.abs(leftList[i] - rightList[i]);
   };
 console.log(answer01);
 
