@@ -54,7 +54,7 @@ function simulateGuardMovement(layout, saveDirections = false) {
 function findLoopObstructionPositions(layout) {
   const visitedhome = simulateGuardMovement(layout);
   for (let i = 1; i < visitedhome.size; i++) {
-    [x, y] = [...visitedhome][i].split(',');
+    let [x, y] = [...visitedhome][i].split(',');
     const testMap = layout.map(row => [...row]);
     testMap[y][x] = '#';
     simulateGuardMovement(testMap, true);

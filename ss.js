@@ -11,6 +11,8 @@ function evaluateExpression(numbers, operators) {
           result += numbers[i];
       } else if (operators[i - 1] === '*') {
           result *= numbers[i];
+      } else if (operators[i - 1] === '||') {
+          result = parseInt(result.toString() + numbers[i].toString());
       }
   }
   return result;
@@ -29,7 +31,7 @@ function generateCombinations(elements, length) {
 }
 
 function findValidEquations(equations) {
-  const operators = ['+', '*'];
+  const operators = ['+', '*', '||'];
   let totalCalibrationResult = 0;
 
   equations.forEach(equation => {
@@ -54,7 +56,3 @@ function findValidEquations(equations) {
 
 const result = findValidEquations(equations);
 console.log(`Total calibration result: ${result}`);
-
-
-
-console.timeEnd('Execution Time');
