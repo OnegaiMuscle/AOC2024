@@ -55,6 +55,6 @@ function findValidEquations(equations) {
 
 
 const result = findValidEquations(equations);
-console.log(`Total calibration result: ${result}`);
+console.log(result);
 
 console.timeEnd('Execution Time');
