@@ -75,7 +75,7 @@ const simulateGuardMovementbis = map => {
 const findLoopObstructionPositions = map => {
   const visitedhome = simulateGuardMovement(map);
   for (let i = 1; i < visitedhome.size; i++) {
-    [x,y]=[...visitedhome][i].split(',').map(Number)
+    [x,y]=[...visitedhome][i].split(',')
     const testMap = map.map(row => [...row]);
     testMap[y][x] = '#'
     simulateGuardMovementbis(testMap)
