@@ -1,60 +1,73 @@
 console.time('Execution Time');
 
+
 const fs = require('fs');
-const data = fs.readFileSync('inputDay07.txt', 'utf8');
-const equations = data.trim().split('\n');
 
-function evaluateExpression(numbers, operators) {
-  let result = numbers[0];
-  for (let i = 1; i < numbers.length; i++) {
-      if (operators[i - 1] === '+') {
-          result += numbers[i];
-      } else if (operators[i - 1] === '*') {
-          result *= numbers[i];
-      } else if (operators[i - 1] === '||') {
-          result = parseInt(result.toString() + numbers[i].toString());
-      }
-  }
-  return result;
+function antennaPositions(grid) {
+    const antennas = {};
+    grid.forEach((row, y) => {
+        row.forEach((cell, x) => {
+            if (cell !== '.') {
+                if (!antennas[cell]) antennas[cell] = [];
+                antennas[cell].push([x, y]);
+            }
+        });
+    });
+    return antennas;
 }
 
-function generateCombinations(elements, length) {
-  if (length === 1) return elements.map(el => [el]);
-  const combinations = [];
-  elements.forEach(el => {
-      const smallerCombinations = generateCombinations(elements, length - 1);
-      smallerCombinations.forEach(smallerCombination => {
-          combinations.push([el, ...smallerCombination]);
-      });
-  });
-  return combinations;
+function* combinations(arr, k) {
+    const n = arr.length;
+    if (k > n) return;
+    const indices = Array.from({ length: k }, (_, i) => i);
+    yield indices.map(i => arr[i]);
+    while (true) {
+        let i;
+        for (i = k - 1; i >= 0 && indices[i] === i + n - k; i--);
+        if (i < 0) return;
+        indices[i]++;
+        for (let j = i + 1; j < k; j++) {
+            indices[j] = indices[j - 1] + 1;
+        }
+        yield indices.map(i => arr[i]);
+    }
 }
 
-function findValidEquations(equations) {
-  const operators = ['+', '*', '||'];
-  let totalCalibrationResult = 0;
+function findAntinodes(antennas, xRange, yRange, resonants = [1]) {
+    const antinodes = new Set();
+    for (const locations of Object.values(antennas)) {
+        for (const [u, v] of combinations(locations, 2)) {
+            const [x1, y1] = u;
+            const [x2, y2] = v;
 
-  equations.forEach(equation => {
-      const [testValue, numbersStr] = equation.split(': ');
-      const testValueNum = parseInt(testValue);
-      const numbers = numbersStr.split(' ').map(Number);
+            resonants.forEach(resonant => {
+                const a1x = x1 + resonant * (x1 - x2);
+                const a1y = y1 + resonant * (y1 - y2);
+                if (xRange.includes(a1x) && yRange.includes(a1y)) {
+                    antinodes.add(`${a1x},${a1y}`);
+                }
+            });
 
-      const operatorCombinations = generateCombinations(operators, numbers.length - 1);
-      for (const ops of operatorCombinations) {
-          if (evaluateExpression(numbers, ops) === testValueNum) {
-              totalCalibrationResult += testValueNum;
-              break;
-          }
-      }
-  });
-
-  return totalCalibrationResult;
+            resonants.forEach(resonant => {
+                const a2x = x2 + resonant * (x2 - x1);
+                const a2y = y2 + resonant * (y2 - y1);
+                if (xRange.includes(a2x) && yRange.includes(a2y)) {
+                    antinodes.add(`${a2x},${a2y}`);
+                }
+            });
+        }
+    }
+    return antinodes;
 }
 
-// Example input
+const grid = fs.readFileSync('inputDay08.txt', 'utf8').trim().split('\n').map(line => line.split(''));
 
+const antennas = antennaPositions(grid);
 
-const result = findValidEquations(equations);
-console.log(result);
+let antinodes = findAntinodes(antennas, [...Array(grid[0].length).keys()], [...Array(grid.length).keys()], [1]);
+console.log(antinodes.size);
+
+antinodes = findAntinodes(antennas, [...Array(grid[0].length).keys()], [...Array(grid.length).keys()], Array.from({ length: grid.length }, (_, i) => i));
+console.log(antinodes.size);
 
 console.timeEnd('Execution Time');

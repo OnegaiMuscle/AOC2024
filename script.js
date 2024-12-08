@@ -1,59 +1,82 @@
 console.time('Execution Time');
 
 const fs = require('fs');
-const data = fs.readFileSync('inputDay07.txt', 'utf8');
+const data = fs.readFileSync('inputDay08.txt', 'utf8');
 const equations = data.trim().split('\n');
 
-function evaluateExpression(numbers, operators) {
-  let result = numbers[0];
-  for (let i = 1; i < numbers.length; i++) {
-      if (operators[i - 1] === '+') {
-          result += numbers[i];
-      } else if (operators[i - 1] === '*') {
-          result *= numbers[i];
-      }
-  }
-  return result;
-}
+function findAntinodes(map) {
+  const rows = map.length;
+  const cols = map[0].length;
+  const antennas = {};
 
-function generateCombinations(elements, length) {
-  if (length === 1) return elements.map(el => [el]);
-  const combinations = [];
-  elements.forEach(el => {
-      const smallerCombinations = generateCombinations(elements, length - 1);
-      smallerCombinations.forEach(smallerCombination => {
-          combinations.push([el, ...smallerCombination]);
-      });
-  });
-  return combinations;
-}
-
-function findValidEquations(equations) {
-  const operators = ['+', '*'];
-  let totalCalibrationResult = 0;
-
-  equations.forEach(equation => {
-      const [testValue, numbersStr] = equation.split(': ');
-      const testValueNum = parseInt(testValue);
-      const numbers = numbersStr.split(' ').map(Number);
-
-      const operatorCombinations = generateCombinations(operators, numbers.length - 1);
-      for (const ops of operatorCombinations) {
-          if (evaluateExpression(numbers, ops) === testValueNum) {
-              totalCalibrationResult += testValueNum;
-              break;
+  // Lire la carte et identifier les positions des antennes
+  for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+          const char = map[r][c];
+          if (char !== '.') {
+              if (!antennas[char]) antennas[char] = [];
+              antennas[char].push([r, c]);
           }
       }
-  });
+  }
 
-  return totalCalibrationResult;
+  const antinodes = new Set();
+
+  // Calculer les antinodes pour chaque paire d'antennes de même fréquence
+  for (const freq in antennas) {
+      const positions = antennas[freq];
+      for (let i = 0; i < positions.length; i++) {
+          for (let j = i + 1; j < positions.length; j++) {
+              const [r1, c1] = positions[i];
+              const [r2, c2] = positions[j];
+              const dr = r2 - r1;
+              const dc = c2 - c1;
+
+              // Calculer les positions des antinodes
+              const antinode1 = [r1 - dr, c1 - dc];
+              const antinode2 = [r2 + dr, c2 + dc];
+
+              // Ajouter les antinodes à l'ensemble s'ils sont dans les limites de la carte
+              if (antinodesInBounds(antinodes, antinode1, rows, cols)) {
+                  antinodes.add(antinodesToString(antinodes, antinode1));
+              }
+              if (antinodesInBounds(antinodes, antinode2, rows, cols)) {
+                  antinodes.add(antinodesToString(antinodes, antinode2));
+              }
+          }
+      }
+  }
+
+  return antinodes.size;
 }
 
-// Example input
+function antinodesInBounds(antinodes, [r, c], rows, cols) {
+  return r >= 0 && r < rows && c >= 0 && c < cols;
+}
+
+function antinodesToString(antinodes, [r, c]) {
+  return `${r},${c}`;
+}
+
+// Exemple de carte
+const map = [
+  "............",
+  "........0...",
+  ".....0......",
+  ".......0....",
+  "....0.......",
+  "......A.....",
+  "............",
+  "............",
+  "........A...",
+  ".........A..",
+  "............",
+  "............"
+];
+
+console.log(findAntinodes(equations)); // Affiche le nombre de positions uniques contenant un antinode
 
 
-const result = findValidEquations(equations);
-console.log(result);
 
 
 
