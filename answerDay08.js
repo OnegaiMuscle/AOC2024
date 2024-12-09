@@ -1,7 +1,7 @@
 console.time('Execution Time');
 
-
 const fs = require('fs');
+const grid = fs.readFileSync('inputDay08.txt', 'utf8').trim().split('\n').map(line => line.split(''));
 
 function antennaPositions(grid) {
     const antennas = {};
@@ -60,7 +60,7 @@ function findAntinodes(antennas, xRange, yRange, resonants = [1]) {
     return antinodes;
 }
 
-const grid = fs.readFileSync('inputDay08.txt', 'utf8').trim().split('\n').map(line => line.split(''));
+
 
 const antennas = antennaPositions(grid);
 
