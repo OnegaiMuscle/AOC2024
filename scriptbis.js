@@ -22,7 +22,7 @@ function transformDiskMap(diskMap) {
 }
 
 // Exemple d'utilisation
-const transformedMap = transformDiskMap(data);
+const transformedMap = transformDiskMap(databis);
 console.log(transformedMap); // Affiche "0..111....22222"
 
 function transformDiskMapbis(diskMap) {
