@@ -1,5 +1,4 @@
 console.time('Execution Time');
-
 const fs = require('fs');
 const data = fs.readFileSync('inputDay07.txt', 'utf8').trim().split('\n');
 const equations = data.map(equation => equation.split(/[: ]+/).map(Number));
@@ -23,6 +22,8 @@ function testing(expected, combinations, values)  {
   };
   return 0
 }
+
+
 let sum = equations.reduce( (acc,line) => {
   const [expected, ...values] = line;
   let operators = values.length - 1;
