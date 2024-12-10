@@ -45,5 +45,4 @@ function day10() {
 
   console.log('answer01', endpoints);
   console.log('answer02', trails);
-}
-
+}()
