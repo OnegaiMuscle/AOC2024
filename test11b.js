@@ -16,15 +16,22 @@ function transformStones(stones) {
 }
 
 function blinkStones(stones, blinks) {
+  let queue = stones.slice();
   for (let i = 0; i < blinks; i++) {
-      stones = transformStones(stones);
+      const nextQueue = [];
+      console.log(i)
+      while (queue.length > 0) {
+          const stone = queue.shift();
+          const transformed = transformStones([stone]);
+          nextQueue.push(...transformed);
+      }
+      queue = nextQueue;
   }
-  return stones;
+  return queue;
 }
-
 
 const initialStones = require('fs').readFileSync('inputDay11.txt', 'utf8').trim().split(' ').map(Number);
 console.log(initialStones)
 const blinks = 75;
 const finalStones = blinkStones(initialStones, blinks);
-console.log(finalStones.length); 
+console.log(finalStones.length);
