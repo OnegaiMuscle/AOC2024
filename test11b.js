@@ -10,13 +10,14 @@ function processInput(filename) {
         stone = parseInt(stone);
         stones.set(stone, (stones.get(stone) || 0) + 1);
     });
+    console.log(stones)
     return stones;
 }
 
 function blinkTimes(blinks) {
     for (let i = 0; i < blinks; i++) {
         blink();
-        console.log(i, Array.from(stones.values()).reduce((a, b) => a + b, 0));
+        //console.log(i, Array.from(stones.values()).reduce((a, b) => a + b, 0));
     }
 }
 
