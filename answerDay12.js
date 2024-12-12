@@ -1,15 +1,9 @@
-const map = `
-RRRRIICCFF
-RRRRIICCCF
-VVRRRCCFFF
-VVRCCCJFFF
-VVVVCJJCFE
-VVIVCCJJEE
-VVIIICJJEE
-MIIIIIJJEE
-MIIISIJEEE
-MMMISSJEEE
-`.trim().split('\n').map(line => line.split(''));
+console.time('Execution Time');
+
+const fs = require('fs');
+const filename = 'inputDay12.txt';
+
+map= fs.readFileSync(filename, 'utf8').trim().split('\n').map(line => line.split(''));
 
 function getNeighbors(x, y) {
     return [
@@ -66,3 +60,5 @@ function calculateTotalPrice(map) {
 }
 
 console.log(calculateTotalPrice(map));
+
+console.timeEnd('Execution Time');
