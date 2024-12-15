@@ -1,3 +1,5 @@
+console.time('Execution Time');
+
 const fs = require('fs');
 
 const filename = 'inputDay14.txt';
@@ -53,3 +55,5 @@ const positions = simulateRobots(robots, width, height, time);
 const safetyFactor = calculateSafetyFactor(positions, width, height);
 
 console.log(safetyFactor);
+
+console.timeEnd('Execution Time');
