@@ -36,7 +36,6 @@ function checkChristmasTreePattern(positions) {
         "   *   ",
         "  ***  ",
         " ***** ",
-        "*******",
         "   *   "
     ];
 
