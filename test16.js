@@ -1,5 +1,5 @@
 const fs = require('fs');
-const maze = fs.readFileSync('inputDay16.txt', 'utf8').split('\n');
+const maze = fs.readFileSync('dataSample.txt', 'utf8').split('\n');
 const [rows, cols] = [maze.length, maze[0].length];
 
 function findPosition(maze, pos) {
