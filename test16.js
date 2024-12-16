@@ -1,13 +1,23 @@
 const fs = require('fs');
-const labyrinth = fs.readFileSync('inputDay16.txt', 'utf8').split('\n');
+const maze = fs.readFileSync('inputDay16.txt', 'utf8').split('\n');
+const [rows, cols] = [maze.length, maze[0].length];
 
+function findPosition(maze, pos) {
+  for (let row = 0; row < maze.length; row++) {
+      for (let col = 0; col < maze[0].length; col++) {
+          if (maze[row][col] === pos) return [row, col];
+      }
+  }
+}
 
-function minCostPath(labyrinth) {
-  const rows = labyrinth.length;
-  const cols = labyrinth[0].length;
-  const start = findStart(labyrinth);
-  const end = findEnd(labyrinth);
-  const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // E, S, O, N
+function isValidMove(x, y, rows, cols, maze) {
+  return x >= 0 && x < rows && y >= 0 && y < cols && maze[x][y] !== '#';
+}
+
+function minCostPath(maze) {
+  const start = findPosition(maze, 'S');
+  const end = findPosition(maze, 'E');
+  const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
   const costs = new Map();
   const pq = [];
 
@@ -28,7 +38,7 @@ function minCostPath(labyrinth) {
       const [dx, dy] = directions[direction];
       const nx = x + dx;
       const ny = y + dy;
-      if (isValidMove(nx, ny, rows, cols, labyrinth)) {
+      if (isValidMove(nx, ny, rows, cols, maze)) {
           const newCost = currentCost + 1;
           const key = `${nx},${ny},${direction}`;
           if (!costs.has(key) || newCost < costs.get(key)) {
@@ -40,7 +50,7 @@ function minCostPath(labyrinth) {
       const leftDirection = (direction + 3) % 4;
       const leftNx = x + directions[leftDirection][0];
       const leftNy = y + directions[leftDirection][1];
-      if (isValidMove(leftNx, leftNy, rows, cols, labyrinth)) {
+      if (isValidMove(leftNx, leftNy, rows, cols, maze)) {
           const newCost = currentCost + 1 + 1000;
           const key = `${leftNx},${leftNy},${leftDirection}`;
           if (!costs.has(key) || newCost < costs.get(key)) {
@@ -48,12 +58,10 @@ function minCostPath(labyrinth) {
               pq.push({ cost: newCost, x: leftNx, y: leftNy, direction: leftDirection });
           }
       }
-
-
       const rightDirection = (direction + 1) % 4;
       const rightNx = x + directions[rightDirection][0];
       const rightNy = y + directions[rightDirection][1];
-      if (isValidMove(rightNx, rightNy, rows, cols, labyrinth)) {
+      if (isValidMove(rightNx, rightNy, rows, cols, maze)) {
           const newCost = currentCost + 1 + 1000;
           const key = `${rightNx},${rightNy},${rightDirection}`;
           if (!costs.has(key) || newCost < costs.get(key)) {
@@ -62,30 +70,7 @@ function minCostPath(labyrinth) {
           }
       }
   }
-
   return Infinity;
 }
 
-function findStart(labyrinth) {
-  for (let r = 0; r < labyrinth.length; r++) {
-      for (let c = 0; c < labyrinth[0].length; c++) {
-          if (labyrinth[r][c] === 'S') return [r, c];
-      }
-  }
-}
-
-function findEnd(labyrinth) {
-  for (let r = 0; r < labyrinth.length; r++) {
-      for (let c = 0; c < labyrinth[0].length; c++) {
-          if (labyrinth[r][c] === 'E') return [r, c];
-      }
-  }
-}
-
-function isValidMove(x, y, rows, cols, labyrinth) {
-  return x >= 0 && x < rows && y >= 0 && y < cols && labyrinth[x][y] !== '#';
-}
-
-
-
-console.log(minCostPath(labyrinth)); 
+console.log(minCostPath(maze));
