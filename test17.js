@@ -1,4 +1,4 @@
-const registers = { A: 63281501, B: 0, C: 0 };
+const registers = { A: (10901993033292), B: 0, C: 0 };
 const program = [2,4,1,5,7,5,4,5,0,3,1,6,5,5,3,0];
 
 function runProgram(registers, program) {

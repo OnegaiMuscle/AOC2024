@@ -1,4 +1,8 @@
-function runProgram(registers, program) {
+console.time('Execution Time');
+
+const program = [2,4,1,5,7,5,4,5,0,3,1,6,5,5,3,0];
+
+function runProgram(registerA, registerB, registerC, program) {
   let instructionPointer = 0;
   const output = [];
 
@@ -8,84 +12,78 @@ function runProgram(registers, program) {
       () => operand,
       () => operand,
       () => operand,
-      () => registers.A,
-      () => registers.B,
-      () => registers.C,
+      () => registerA,
+      () => registerB,
+      () => registerC,
       () => { throw new Error("Invalid combo operand"); }
     ];
     return comboOperands[operand]();
   };
 
-  const instructions = [
-    (operand) => { // adv
-      registers.A = Math.trunc(registers.A / Math.pow(2, getComboOperandValue(operand)));
-      instructionPointer += 2;
-    },
-    (operand) => { // bxl
-      registers.B ^= operand;
-      instructionPointer += 2;
-    },
-    (operand) => { // bst
-      registers.B = getComboOperandValue(operand) % 8;
-      instructionPointer += 2;
-    },
-    (operand) => { // jnz
-      if (registers.A !== 0) {
-        instructionPointer = operand;
-      } else {
-        instructionPointer += 2;
-      }
-    },
-    (operand) => { // bxc
-      registers.B ^= registers.C;
-      instructionPointer += 2;
-    },
-    (operand) => { // out
-      output.push(getComboOperandValue(operand) % 8);
-      instructionPointer += 2;
-    },
-    (operand) => { // bdv
-      registers.B = Math.trunc(registers.A / Math.pow(2, getComboOperandValue(operand)));
-      instructionPointer += 2;
-    },
-    (operand) => { // cdv
-      registers.C = Math.trunc(registers.A / Math.pow(2, getComboOperandValue(operand)));
+  const adv = (operand) => {
+    registerA = Math.floor(registerA / 2 ** getComboOperandValue(operand));
+    instructionPointer += 2;
+  };
+  const bxl = (operand) => {
+    registerB ^= operand;
+    instructionPointer += 2;
+  };
+  const bst = (operand) => {
+    registerB = getComboOperandValue(operand) % 8;
+    instructionPointer += 2;
+  };
+  const jnz = (operand) => {
+    if (registerA !== 0) {
+      instructionPointer = operand;
+    } else {
       instructionPointer += 2;
     }
-  ];
+  };
+  const bxc = () => {
+    registerB ^= registerC;
+    instructionPointer += 2;
+  };
+  const out = (operand) => {
+    output.push((getComboOperandValue(operand) % 8 + 8) % 8);
+    instructionPointer += 2;
+  };
+  const bdv = (operand) => {
+    registerB = Math.floor(registerA / 2 ** getComboOperandValue(operand));
+    instructionPointer += 2;
+  };
+  const cdv = (operand) => {
+    registerC = Math.floor(registerA / 2 ** getComboOperandValue(operand));
+    instructionPointer += 2;
+  };
+
+  const instructions = [adv, bxl, bst, jnz, bxc, out, bdv, cdv];
 
   while (instructionPointer < program.length) {
     const opcode = program[instructionPointer];
     const operand = program[instructionPointer + 1];
-
     instructions[opcode](operand);
   }
 
-  return output.join(',');
+  return output;
 }
 
-function findLowestA(program) {
-  const targetOutput = program.join(',');
-
-  let low = 1e24;
-  let high = 1e25; // Arbitrary high value to start with
-
-  while (low < high) {
-    const mid = Math.floor((low + high) / 2);
-    const registers = { A: mid, B: 0, C: 0 };
-    const output = runProgram(registers, program);
-
-    if (output === targetOutput) {
-      high = mid;
-    } else {
-      low = mid + 1;
+function getRegisterAValue(program, cursor, soFar) {
+  for (let candidate = 0; candidate < 8; candidate++) {
+    const testInput = soFar * 8 + candidate;
+    const output = runProgram(testInput, 0, 0, program);
+    if (JSON.stringify(output) === JSON.stringify(program.slice(cursor))) {
+      if (cursor === 0) {
+        return testInput;
+      }
+      const result = getRegisterAValue(program, cursor - 1, testInput);
+      if (result !== null) {
+        return result;
+      }
     }
   }
-
-  return low;
+  return null;
 }
 
-// Example usage
-const program = [2,4,1,5,7,5,4,5,0,3,1,6,5,5,3,0];
-const result = findLowestA(program);
-console.log(result); // Output: 117440
+console.log(getRegisterAValue(program, program.length - 1, 0));
+
+console.timeEnd('Execution Time');

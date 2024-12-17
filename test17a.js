@@ -65,7 +65,7 @@ function runProgram(registers, program) {
 }
 
 function findLowestA(program) {
-  let A = 1;
+  let A = 100000000000000;
   const targetOutput = program.join(',');
 
   while (true) {
@@ -80,7 +80,6 @@ function findLowestA(program) {
   }
 }
 
-// Example usage
 const program = [2,4,1,5,7,5,4,5,0,3,1,6,5,5,3,0];
 const result = findLowestA(program);
-console.log(result); // Output: 117440
+console.log(result);

@@ -1,3 +1,5 @@
+console.time('Execution Time');
+
 const registers = { A: 63281501, B: 0, C: 0 };
 const program = [2,4,1,5,7,5,4,5,0,3,1,6,5,5,3,0];
 
@@ -20,7 +22,7 @@ function runProgram(registers, program) {
   };
 
   const adv = (operand) => {
-    registers.A = Math.trunc(registers.A / Math.pow(2, getComboOperandValue(operand)));
+    registers.A = Math.floor(registers.A / 2 ** getComboOperandValue(operand));
     instructionPointer += 2;
   };
   const bxl = (operand) => {
@@ -39,15 +41,15 @@ function runProgram(registers, program) {
     instructionPointer += 2;
   };
   const out = (operand) => {
-    output.push(getComboOperandValue(operand) % 8);
+    output.push((getComboOperandValue(operand) % 8 + 8) % 8);
     instructionPointer += 2;
   };
   const bdv = (operand) => {
-    registers.B = Math.trunc(registers.A / Math.pow(2, getComboOperandValue(operand)));
+    registers.B = Math.floor(registers.A / 2 ** getComboOperandValue(operand));
     instructionPointer += 2;
   };
   const cdv = (operand) => {
-    registers.C = Math.trunc(registers.A / Math.pow(2, getComboOperandValue(operand)));
+    registers.C = Math.floor(registers.A / 2 ** getComboOperandValue(operand));
     instructionPointer += 2;
   };
 
@@ -63,3 +65,5 @@ function runProgram(registers, program) {
 };
 
 console.log(runProgram(registers, program));
+
+console.timeEnd('Execution Time');
