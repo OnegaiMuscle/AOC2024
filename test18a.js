@@ -1,3 +1,5 @@
+console.time('Execution Time');
+
 const fs = require('fs');
 const data = fs.readFileSync('inputDay18.txt', 'utf8').split('\n');
 const bytes = data.map(line => line.split(',').map(Number));
@@ -48,3 +50,5 @@ while (left < right - 1) {
 
 const blockingByte = bytes[right - 1];
 console.log(blockingByte[0],blockingByte[1]);
+
+console.timeEnd('Execution Time');
