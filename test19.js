@@ -17,11 +17,12 @@ function countDesignCombinations(design, patterns) {
   return dp[design.length];
 }
 
-const totalCombinations = designs.reduce((sum, design) => {
+const [possibleDesignsCount, totalCombinations] = designs.reduce(([sum1, sum2], design) => {
   const combinations = countDesignCombinations(design, towelPatterns)
-  combinations > 0 ? sum += combinations : sum;
-  return sum
-  }, 0);
-console.log(totalCombinations);
+  combinations ? sum1++ : sum1;
+  combinations > 0 ? sum2 += combinations : sum2;
+  return [sum1, sum2]
+  }, [0,0]);
+console.log(possibleDesignsCount, totalCombinations);
 
 console.timeEnd('Execution Time');
