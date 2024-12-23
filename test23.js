@@ -1,3 +1,4 @@
+console.time('Execution Time');
 const fs = require('fs');
 const input = fs.readFileSync('inputDay23.txt', 'utf8').trim().split('\n');
 
@@ -35,3 +36,4 @@ const filteredTriangles = filterTriangles(triangles);
 const count = filteredTriangles.length;
 
 console.log(count);
+console.timeEnd('Execution Time');
