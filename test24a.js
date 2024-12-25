@@ -1,126 +1,182 @@
-const fs = require('fs');
+const fs = require("fs");
+const [wiresRaw, gatesRaw] = fs
+  .readFileSync("inputDay24.txt", "utf8")
+  .trim()
+  .split("\n\n")
+  .map((n) => n.split("\n"));
 
-// Lire les données du fichier
-const input = fs.readFileSync('input.txt', 'utf8').trim().split('\n');
+const wires = {};
+for (const line of wiresRaw) {
+  const [name, value] = line.split(": ");
+  wires[name] = parseInt(value);
+}
 
-// Séparer les valeurs initiales des connexions de portes
-const initialValues = {};
+const inputBitCount = wiresRaw.length / 2;
+
 const gates = [];
-const dependencies = {};
+for (const line of gatesRaw) {
+  let [inputs, output] = line.split(" -> ");
 
-input.forEach(line => {
-  if (line.includes(':')) {
-    const [wire, value] = line.split(': ');
-    initialValues[wire] = parseInt(value);
-  } else if (line.includes('->')) {
-    const [inputs, output] = line.split(' -> ');
-    gates.push({ inputs, output });
-    dependencies[output] = inputs.split(' ').filter(x => x !== 'AND' && x !== 'OR' && x !== 'XOR');
-  }
-});
+  const [a, op, b] = inputs.split(" ");
+  gates.push({ a, op, b, output });
 
-// Fonction pour simuler les portes logiques
-const simulateGates = (initialValues, gates, dependencies) => {
-  const values = { ...initialValues };
-  const ready = new Set(Object.keys(initialValues));
-  const pending = gates.slice();
+  if (wires[a] == undefined) wires[a] = null;
+  if (wires[b] == undefined) wires[b] = null;
+  if (wires[output] == undefined) wires[output] = null;
+}
 
-  const getValue = (wire) => values[wire];
+function isDirect(gate) {
+  return gate.a.indexOf("x") == 0 || gate.b.indexOf("x") == 0;
+}
 
-  const setValue = (wire, value) => {
-    values[wire] = value;
-    ready.add(wire);
+function isOutput(gate) {
+  return gate.output.indexOf("z") == 0;
+}
+
+function isGate(type) {
+  return function (gate) {
+    return gate.op == type;
   };
+}
 
-  const processGate = (gate) => {
-    const { inputs, output } = gate;
-    const [input1, operator, input2] = inputs.split(' ');
-
-    const value1 = getValue(input1);
-    const value2 = getValue(input2);
-
-    if (value1 === undefined || value2 === undefined) {
-      return false;
-    }
-
-    let result;
-    switch (operator) {
-      case 'AND':
-        result = value1 & value2;
-        break;
-      case 'OR':
-        result = value1 | value2;
-        break;
-      case 'XOR':
-        result = value1 ^ value2;
-        break;
-      default:
-        return false;
-    }
-
-    setValue(output, result);
-    return true;
+function hasOutput(output) {
+  return function (gate) {
+    return gate.output === output;
   };
+}
 
-  while (pending.length > 0) {
-    const nextPending = [];
-    for (const gate of pending) {
-      if (!processGate(gate)) {
-        nextPending.push(gate);
-      }
+function hasInput(input) {
+  return function (gate) {
+    return gate.a === input || gate.b === input;
+  };
+}
+
+//outputs that are flagged as bad or suspicious
+const flags = new Set();
+
+/**
+ * FULL ADDER
+ * (first bits aren't a full adder)
+ * (for last FA, COUT is the extra output)
+ *
+ * A    XOR B    -> VAL0     <= FAGate0
+ * A    AND B    -> VAL1     <= FAGate1
+ * VAL0 AND CIN  -> VAL2     <= FAGate2
+ * VAL0 XOR CIN  -> SUM      <= FAGate3
+ * VAL1 OR  VAL2 -> COUT     <= FAGate4
+ */
+
+//check FAGate0 gates for zXXs
+//each of these should be a An XOR Bn -> VAL0n
+//except for the first one, which should be x00 XOR y00 -> z00
+const FAGate0s = gates.filter(isDirect).filter(isGate("XOR"));
+for (const gate of FAGate0s) {
+  const { a, b, output } = gate;
+
+  const isFirst = a === "x00" || b === "x00";
+  if (isFirst) {
+    if (output !== "z00") {
+      flags.add(output);
     }
-    if (nextPending.length === pending.length) {
-      break; // Aucun progrès, éviter une boucle infinie
-    }
-    pending.length = 0;
-    pending.push(...nextPending);
+    continue;
+  } else if (output == "z00") {
+    flags.add(output);
   }
 
-  return values;
-};
+  //none of these should be a output
+  if (isOutput(gate)) {
+    flags.add(output);
+  }
+}
 
-// Simuler les portes logiques
-const finalValues = simulateGates(initialValues, gates, dependencies);
+//check all XOR gates that are indirect (FAGate3)
+//each of these should be outputting to a zXX
+const FAGate3s = gates.filter(isGate("XOR")).filter((gate) => !isDirect(gate));
+for (const gate of FAGate3s) {
+  if (!isOutput(gate)) {
+    flags.add(gate.output);
+  }
+}
 
-// Fonction pour identifier les fils échangés
-const identifySwappedWires = (initialValues, gates, dependencies) => {
-  const expectedValues = simulateGates(initialValues, gates, dependencies);
-  const swappedWires = [];
-
-  gates.forEach(gate => {
-    const { inputs, output } = gate;
-    const [input1, operator, input2] = inputs.split(' ');
-
-    const value1 = initialValues[input1];
-    const value2 = initialValues[input2];
-
-    let expectedResult;
-    switch (operator) {
-      case 'AND':
-        expectedResult = value1 & value2;
-        break;
-      case 'OR':
-        expectedResult = value1 | value2;
-        break;
-      case 'XOR':
-        expectedResult = value1 ^ value2;
-        break;
-      default:
-        return;
+//check all output gates
+//each of these should be VAL0 XOR CIN -> SUM
+//except for the last one, which should be VAL1 OR VAL2 -> COUT
+const outputGates = gates.filter(isOutput);
+for (const gate of outputGates) {
+  const isLast = gate.output === `z${inputBitCount}`.padStart(3, "0");
+  if (isLast) {
+    if (gate.op !== "OR") {
+      flags.add(gate.output);
     }
+    continue;
+  } else if (gate.op !== "XOR") {
+    flags.add(gate.output);
+  }
+}
 
-    if (expectedValues[output] !== expectedResult) {
-      swappedWires.push(output);
-    }
-  });
+//more complex checks
 
-  return swappedWires;
-};
+//all FAGate0 gates MUST output to a FAGate3 gate
+let checkNext = [];
+for (const gate of FAGate0s) {
+  const { output } = gate;
 
-// Identifier les fils échangés
-const swappedWires = identifySwappedWires(initialValues, gates, dependencies);
+  //if we've already flagged this, skip
+  if (flags.has(output)) continue;
 
-// Trier les noms des fils échangés et les joindre avec des virgules
-const sortedSwappedWires = swappedWires.sort().join(',');
+  //if the output is z00, skip
+  if (output === "z00") continue;
 
-console.log(sortedSwappedWires);
+  const matches = FAGate3s.filter(hasInput(output));
+  if (matches.length === 0) {
+    checkNext.push(gate);
+    flags.add(output);
+  }
+}
+
+//check what the flagged gates should be
+for (const gate of checkNext) {
+  const { a, output } = gate;
+
+  //the inputs should be An and Bn, so the output of this gate *should* go to an FaGate3 that outputs Zn
+  const intendedResult = `z${a.slice(1)}`;
+  const matches = FAGate3s.filter(hasOutput(intendedResult));
+
+  //if there's not exactly one match, something has gone very wrong
+  if (matches.length != 1) {
+    throw new Error("Critical Error! Is your input correct?");
+  }
+
+  const match = matches[0];
+
+  const toCheck = [match.a, match.b];
+
+  //one of these should come from an OR gate
+  const orMatches = gates
+    .filter(isGate("OR"))
+    .filter((gate) => toCheck.includes(gate.output));
+
+  //if theres not exactly one match, this solver isn't complex enough to solve this
+  if (orMatches.length != 1) {
+    throw new Error(
+      "Critical Error! This solver isn't complex enough to solve this"
+    );
+  }
+
+  const orMatchOutput = orMatches[0].output;
+
+  //the correct output is the one that isn't OrMatchOutput
+  const correctOutput = toCheck.find((output) => output !== orMatchOutput);
+  flags.add(correctOutput);
+}
+
+//if there isn't exactly 8 flags, this solver isn't complex enough to solve this
+if (flags.size != 8) {
+  throw new Error(
+    "Critical Error! This solver isn't complex enough to solve this"
+  );
+}
+
+const flagsArr = [...flags];
+flagsArr.sort((a, b) => a.localeCompare(b));
+console.log(flagsArr.join(","));
